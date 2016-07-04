@@ -160,7 +160,11 @@ Shapefiles:
 lack of breaks is so stupid
 so so stupid
 epically stupid
-it's nott getting better
+it's not getting better
+seriously
+why
+won't it
+move to next column
 </div>
 
 ```{r,echo=FALSE,results='hide',fig.width=4,fig.height=5}
@@ -370,8 +374,10 @@ ggplot(dplyr::filter(fish_value,time==2051),aes(x=scenario,y=net_catch_value_SDR
 ## Conclusions & Future directions
 
 - The 'toolbox' is becoming an R package
-  - modules/submodule to functions
-  - better documentation
-  - overall more useable
+
+    - modules/submodule to functions
+    - better documentation
+    - overall more useable
+  
 - Improve speed and reduce stochasticity
 - Add sensitivity analysis
