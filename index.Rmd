@@ -1,0 +1,377 @@
+---
+title: "Assessing commercial fishery costs and benefits related to MPA network design"
+author: "Remi Daigle"
+date: "July 4, 2016"
+output: ioslides_presentation
+---
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# load packages
+library(rgdal)
+library(rgeos)
+library(ggplot2)
+library(tidyr)
+```
+
+## Everything is open-access
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+<div class="columns-2">
+  <div class="rows-2">
+  <center><a href="http://remi-daigle.github.io/bioeconomic_MPA/" style="text-decoration:none" class="fa fa-book fa-5x"></a>
+  
+  Documentation
+  
+  <a href="http://f1000research.com/articles/4-1234/v1" style="text-decoration: none" class="fa fa-file-text fa-5x"></a>
+  
+  Case Study Paper</center>
+  </div>
+
+  <div class="rows-2">
+
+  <center><a href="https://github.com/remi-daigle/bioeconomic_MPA" style="text-decoration: none" class="fa fa-code fa-5x"></a>
+
+  Code
+
+  <a href="http://figshare.com/articles/Bioeconomic_MPA_network_design_Cod_case_study_output/1585146" style="text-decoration: none" class="fa fa-database fa-5x"></a>
+
+  Data</center>
+  </div>
+</div>
+
+
+## The question:
+**If MPA networks follow designn protocol X, Y, or Z, does the fishing industry stand to suffer or benefit financially?**
+
+Atlantic cod case study scenarios:
+
+- Status Quo
+- Maximum Distance
+- Fixed Distance
+- Targeted
+
+## Scenario 1: Status Quo {.columns-2}
+```{r,echo=FALSE,results='hide',fig.width=4,fig.height=5}
+#load shapefiles
+proj  <- "+proj=lcc +lat_1=40 +lat_2=70 +lat_0=-71.3 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs"
+
+eez <- readOGR(dsn=getwd(), layer = "eez_iho_union_v2")
+eez <- gUnionCascaded(eez[eez$marregion!="Canadian part of the Davis Strait",])
+eez <- spTransform(eez,CRS(proj))
+
+shp <- readOGR(dsn=getwd(), layer = "Status_quo_1")
+shp <- spTransform(shp,CRS(proj))
+
+#plot
+par(mar=c(0,0,1,0),xpd=TRUE,bg=NA)
+plot(eez,lwd=2)
+plot(shp,col="purple",add=TRUE,border='purple')
+legend('top',fill=c('purple'),legend=c('MPA'),bty = 'n',cex=1.7,inset=-0.08)
+```
+
+- only includes currently established MPAs
+
+
+## Scenario 2: Maximum Distance {.columns-2}
+```{r,echo=FALSE,results='hide',fig.width=4,fig.height=5}
+#load shapefiles
+shp <- readOGR(dsn=getwd(), layer = "MPAs_maxdist_1")
+shp <- spTransform(shp,CRS(proj))
+
+#plot
+par(mar=c(0,0,1,0),xpd=TRUE,bg=NA)
+plot(eez,lwd=2)
+plot(shp,col="green",add=TRUE,border='green')
+legend('top',fill=c('green'),legend=c('MPA'),bty = 'n',cex=1.7,inset=-0.08)
+```
+
+- minimizes population connectivity
+- places MPAs as far as possible from nearest neighbours
+
+## Scenario 3: Fixed Distance {.columns-2}
+```{r,echo=FALSE,results='hide',fig.width=4,fig.height=5}
+#load shapefiles
+shp <- readOGR(dsn=getwd(), layer = "MPAs_fixed_1")
+shp <- spTransform(shp,CRS(proj))
+
+#plot
+par(mar=c(0,0,1,0),xpd=TRUE,bg=NA)
+plot(eez,lwd=2)
+plot(shp,col="red",add=TRUE,border='red')
+legend('top',fill=c('red'),legend=c('MPA'),bty = 'n',cex=1.7,inset=-0.08)
+```
+
+- optimizizes population connectivity
+- places MPAs at a fixed distance from the nearest neighbours
+- the distance is biologically relevant (i.e. dispersal distance)
+
+## Scenario 4: Targeted {.columns-2}
+```{r,echo=FALSE,results='hide',fig.width=4,fig.height=5}
+#load shapefiles
+shp <- readOGR(dsn=getwd(), layer = "MPAs_targeted_1")
+shp <- spTransform(shp,CRS(proj))
+
+#plot
+par(mar=c(0,0,1,0),xpd=TRUE,bg=NA)
+plot(eez,lwd=2)
+plot(shp,col="blue",add=TRUE,border='blue')
+legend('top',fill=c('blue','yellow'),legend=c('MPA','Breeding'),bty = 'n',cex=1.7,inset=-0.08,ncol = 2)
+```
+
+- maximizes biological relevance
+- protects "breeding areas" by default
+- places remaining MPAs at a fixed distance from the nearest neighbours
+
+
+## Scenario 4: Targeted {.columns-2}
+```{r,echo=FALSE,results='hide',fig.width=4,fig.height=5}
+#load shapefiles
+shp <- readOGR(dsn=getwd(), layer = "MPAs_targeted_1")
+shp <- spTransform(shp,CRS(proj))
+
+cod <- readOGR(dsn=getwd(), layer = "cod_breeding")
+cod <- spTransform(cod,CRS(proj))
+#plot
+par(mar=c(0,0,1,0),xpd=TRUE,bg=NA)
+plot(eez,lwd=2)
+plot(shp,col="blue",add=TRUE,border='blue')
+plot(cod[2:15,],col="yellow",add=TRUE,border='yellow')
+legend('top',fill=c('blue','yellow'),legend=c('MPA','Breeding'),bty = 'n',cex=1.7,inset=-0.08,ncol = 2)
+```
+
+- maximizes biological relevance
+- protects "breeding areas" by default
+- places remaining MPAs at a fixed distance from the nearest neighbours
+
+----
+<center><img src="model.png" height="600px"/></center>
+
+## The input: Spatial Base Layer {.columns-2}
+
+Shapefiles:
+
+- EEZ
+- Species' habitat
+- Species' breeding areas
+- Protection scenarios*
+
+*may be generated at this step, or imported
+
+<div style="color:transparent;">
+lack of breaks is so stupid
+so so stupid
+epically stupid
+it's nott getting better
+</div>
+
+```{r,echo=FALSE,results='hide',fig.width=4,fig.height=5}
+#load shapefiles
+hab <- readOGR(dsn=getwd(), layer = "cod_habitat")
+hab <- gIntersection(spTransform(hab,CRS(proj)),eez,byid = TRUE)
+#plot
+par(mar=c(0,0,1,0),xpd=TRUE,bg=NA)
+plot(eez,lwd=2)
+plot(hab,col="blue",add=TRUE,border='blue')
+plot(cod[2:15,],col="yellow",add=TRUE,border='yellow')
+legend('top',fill=c('blue','yellow'),legend=c('Habitat','Breeding'),bty = 'n',cex=1.7,inset=-0.08,ncol = 2)
+```
+
+## The input: Growth and Reproduction {.columns-2}
+
+Von Bertalanffy growth model (Knickle and Rose 2013):
+
+- Asymptotic length
+- growth coefficient
+
+Fecundity:
+
+- Length-weight relationship (Knickle and Rose 2013)
+- 500000 eggs/kg
+
+
+## The input: Dispersal {.columns-2}
+
+*Adult:*
+
+- Based on known migration distances
+
+*Larval:*
+
+- Length-weight relationship (Knickle and Rose 2013)
+- 500000 eggs/kg
+
+<div style="color:transparent;">
+lack of breaks is so stupid
+so so stupid
+</div>
+
+**Built-in functionality**
+
+The 'input' here can be connectivity matrices generated by:
+
+- random dispersal (case study) 
+- simple biophysical dispersal models (ocean currents)
+- complex biophysical dispersal models (larval behaviours)
+
+## The input: Harvesting
+**Effort**
+
+effort = (1-rb[i])*rd[i]
+
+where the _rb_ is the biomass in cell _i_ divided by the maximum biomass in the model domain and _rd_ is the actual distance to shore for cell _i_ divided by the mean distance to shore for all the cells in the model domain.
+
+**MPAs & Moratorium**
+
+Fishermen can't fish in MPAs.
+EEZ wide moratorium is triggered if biomass <10K tons
+
+**Fishing ports**
+
+Currently, anywhere on the coast, but the model could handle fine scale port data
+
+## The input: Cost Evaluation {.columns-2}
+**MPA implementation & enforcement** 
+
+- not in case study
+
+**Catch value:**
+
+- gross landing value
+- net = gross - operating costs
+
+**Net Present Value:**
+
+- we do not value things in the future as much as the present 
+- effectively the opposite of interest rates
+
+```{r,echo=FALSE,results='hide',fig.width=3.75,fig.height=5}
+Year <- c(2000:2050)
+Value <- c((1:51)*1000)
+ValueSDR006 <- cumsum(1000*1/(1+0.06)^(Year-min(Year)))
+par(mar=c(4,4,1,1),xpd=TRUE,bg=NA)
+plot(Year,Value,lwd=3,type='l',cex=1.7)
+lines(Year,ValueSDR006,lwd=3,col="blue")
+legend('top',lty=1,lwd=3,col=c('black','blue'),legend=c('SDR = 0','SDR = 0.06'),bty = 'n')
+title("Example: 1000$ per year")
+```
+
+## Using the toolbox
+
+[Downloading](https://github.com/remi-daigle/bioeconomic_MPA) the toolbox should allow users to **replicate the findings** presented in the [case study](http://f1000research.com/articles/4-1234/v1).
+
+Users should be able to **substitute their own input** in 'user_input.R' to represent **different areas/species**.
+
+Efforts were made to **modularize the code** so that users can 'easily' edit [modules/sub-modules](http://remi-daigle.github.io/bioeconomic_MPA/)
+
+## Results: Biomass
+```{r,echo=FALSE,message=FALSE,warning=FALSE,results='hide',fig.width=8,fig.height=5,dev.args = list(bg = 'transparent')}
+fish_long <- read.csv("fish_long.csv")
+protect_scen_names <- c("Status Quo", "Maximum Distance", "Fixed Distance" , "Targeted")[c(3,2,4,1)]
+protect_scen_colour <- c("purple","green","red","blue")[c(3,2,4,1)]
+ggplot(fish_long,aes(x=time,y=biomass,colour=scenario))+
+    geom_smooth(cex=2)+
+    theme_classic()+
+    theme(legend.position="top",
+          text=element_text(size=18),
+          panel.background = element_rect(fill = "transparent",colour = NA),
+          plot.background = element_rect(fill = "transparent",colour = NA))+
+    labs(x="Year",y="Total Stock Biomass (t)")+
+    scale_colour_manual(values=protect_scen_colour,
+                        labels=protect_scen_names,name="")
+```
+
+## Results: Catch
+```{r,echo=FALSE,message=FALSE,warning=FALSE,results='hide',fig.width=8,fig.height=5,dev.args = list(bg = 'transparent')}
+fish_value <- read.csv("fish_value.csv")
+ggplot(fish_value,aes(x=time,y=tot_catch,colour=scenario))+
+    geom_smooth(cex=2)+
+    theme_classic()+
+    theme(legend.position="top",
+          text=element_text(size=18),
+          panel.background = element_rect(fill = "transparent",colour = NA),
+          plot.background = element_rect(fill = "transparent",colour = NA))+
+    labs(x="Year",y="Total catch (t)")+
+    scale_colour_manual(values=protect_scen_colour,
+                        labels=protect_scen_names,name="")
+```
+
+## Results: Distance
+```{r,echo=FALSE,message=FALSE,warning=FALSE,results='hide',fig.width=8,fig.height=5,dev.args = list(bg = 'transparent')}
+ggplot(fish_value,aes(x=time,y=dist,colour=scenario))+
+    geom_smooth(cex=2)+
+    theme_classic()+
+    theme(legend.position="top",
+          text=element_text(size=18),
+          panel.background = element_rect(fill = "transparent",colour = NA),
+          plot.background = element_rect(fill = "transparent",colour = NA))+
+    labs(x="Year",y="Mean distance from shore (km)")+
+    scale_colour_manual(values=protect_scen_colour,
+                        labels=protect_scen_names,name="")
+```
+
+## Results: Present Value (SDR = 0.015)
+```{r,echo=FALSE,message=FALSE,warning=FALSE,results='hide',fig.width=8,fig.height=5,dev.args = list(bg = 'transparent')}
+ggplot(fish_value,aes(x=time,y=net_catch_value_SDRA_cumsum,colour=scenario))+
+    geom_smooth(cex=2)+
+    theme_classic()+
+    theme(legend.position="top",
+          text=element_text(size=18),
+          panel.background = element_rect(fill = "transparent",colour = NA),
+          plot.background = element_rect(fill = "transparent",colour = NA))+
+    labs(x="Year",y=expression(paste("CUmulative Net Present Value (10"^"6"," CAD)",sep="")))+
+    scale_colour_manual(values=protect_scen_colour,
+                        labels=protect_scen_names,name="")
+```
+
+## Results: Present Value (SDR = 0.015)
+```{r,echo=FALSE,message=FALSE,warning=FALSE,results='hide',fig.width=8,fig.height=5,dev.args = list(bg = 'transparent')}
+ggplot(dplyr::filter(fish_value,time==2051),aes(x=scenario,y=net_catch_value_SDRA_cumsum,fill=scenario,xlab="test"))+
+        geom_boxplot()+
+        theme_classic()+
+        theme(legend.position="top",
+          text=element_text(size=18),
+          panel.background = element_rect(fill = "transparent",colour = NA),
+          plot.background = element_rect(fill = "transparent",colour = NA))+
+        labs(x="Year",y=expression(paste("Net Present Value (10"^"6"," CAD)",sep="")))+
+    scale_colour_manual(labels=protect_scen_names,name="",values=protect_scen_colour)+
+    geom_violin(width=0.3, alpha = 0.3)+
+    geom_hline(yintercept=0,lty=2)
+```
+
+## Results: Present Value (SDR = 0.03)
+```{r,echo=FALSE,message=FALSE,warning=FALSE,results='hide',fig.width=8,fig.height=5,dev.args = list(bg = 'transparent')}
+ggplot(dplyr::filter(fish_value,time==2051),aes(x=scenario,y=net_catch_value_SDRB_cumsum,fill=scenario,xlab="test"))+
+        geom_boxplot()+
+        theme_classic()+
+        theme(legend.position="top",
+          text=element_text(size=18),
+          panel.background = element_rect(fill = "transparent",colour = NA),
+          plot.background = element_rect(fill = "transparent",colour = NA))+
+        labs(x="Year",y=expression(paste("Net Present Value (10"^"6"," CAD)",sep="")))+
+    scale_colour_manual(labels=protect_scen_names,name="",values=protect_scen_colour)+
+    geom_violin(width=0.3, alpha = 0.3)+
+    geom_hline(yintercept=0,lty=2)
+```
+
+## Results: Present Value (SDR = 0.06)
+```{r,echo=FALSE,message=FALSE,warning=FALSE,results='hide',fig.width=8,fig.height=5,dev.args = list(bg = 'transparent')}
+ggplot(dplyr::filter(fish_value,time==2051),aes(x=scenario,y=net_catch_value_SDRC_cumsum,fill=scenario,xlab="test"))+
+        geom_boxplot()+
+        theme_classic()+
+        theme(legend.position="top",
+          text=element_text(size=18),
+          panel.background = element_rect(fill = "transparent",colour = NA),
+          plot.background = element_rect(fill = "transparent",colour = NA))+
+        labs(x="Year",y=expression(paste("Net Present Value (10"^"6"," CAD)",sep="")))+
+    scale_colour_manual(labels=protect_scen_names,name="",values=protect_scen_colour)+
+    geom_violin(width=0.3, alpha = 0.3)+
+    geom_hline(yintercept=0,lty=2)
+```
+
+## Conclusions & Future directions
+
+- The 'toolbox' is becoming an R package
+  - modules/submodule to functions
+  - better documentation
+  - overall more useable
+- Improve speed and reduce stochasticity
+- Add sensitivity analysis
